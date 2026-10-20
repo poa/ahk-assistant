@@ -115,6 +115,16 @@ map. It exits with the number of failures:
 "/mnt/c/Program Files/AutoHotkey/v2/AutoHotkey64.exe" /ErrorStdOut tests/modules.ahk
 ```
 
+Window sizes: `tests/window.ahk` checks `RegionRect()` (halves,
+quarters and the `WINDOW_STEPS` fractions, on even and odd work areas),
+the Ctrl+Win+arrows step cycle (`NextWindowStep()`) and the
+`WINDOW_STEPS` check. It moves no window and exits with the number of
+failures. Add a check there when you change the window geometry:
+
+```sh
+"/mnt/c/Program Files/AutoHotkey/v2/AutoHotkey64.exe" /ErrorStdOut tests/window.ahk
+```
+
 To check how a built-in behaves, pipe a print-only probe script to the
 interpreter instead of writing files: `… /ErrorStdOut '*'` reads the
 script from stdin (quote the `*`), and `FileAppend "…", "*"` prints. A
@@ -136,7 +146,7 @@ and press the hotkey. If you couldn't test by hand, say so.
   `hotkeys.ahk`, `apps.ahk`, `window.ahk`, `diag.ahk`, `mouse.ahk`, and
   `hotstrings.ahk` (Russian abbreviations, off by default; included
   after the `#Hotstring EndChars` directive it relies on).
-- **`tests/`:** `menus.ahk`, `modules.ahk`, `readme-coverage.ahk` (see
+- **`tests/`:** `menus.ahk`, `modules.ahk`, `window.ahk`, `readme-coverage.ahk` (see
   "Checking changes").
 - **`docs/`:** screenshots for the README.
 - **`.claude/`:** Claude Code project settings and the validate hook
@@ -200,7 +210,7 @@ and press the hotkey. If you couldn't test by hand, say so.
   and in `fileModules` (`tests/modules.ahk`). Keys that must always work
   go in `lib/script.ahk`.
 - Settings and globals live in `config.default.ahk` (tracked: `DEBUG`,
-  `DELAY`, `HINTS`, `MENU_KEYS`, `MODULES`, `TRACKERS`). `config.ahk` is the
+  `DELAY`, `HINTS`, `MENU_KEYS`, `MODULES`, `TRACKERS`, `WINDOW_STEPS`). `config.ahk` is the
   user's optional, untracked override, included after it with
   `#Include *i`. Never put machine- or company-specific values (hosts,
   titles) in tracked files: the default file holds generic examples and
@@ -251,6 +261,11 @@ and press the hotkey. If you couldn't test by hand, say so.
 - Names are case-insensitive and share one namespace with functions
   and classes: a variable `buffer` clashes with the `Buffer` class.
 - `ControlGetPos` returns client-area coordinates.
+- **Place windows with `MoveWindowFrame(hwnd, rect)`** (`lib/window.ahk`),
+  not a bare `WinMove`. Windows 10/11 windows have invisible resize
+  borders (7 px at 100%, left, right and bottom), so `WinMove` with a
+  visible size leaves the window too big and overlapping its neighbour.
+  `MoveWindowFrame()` adds the window's real borders (from DWM).
 - v2 reads scripts as UTF-8, with or without a BOM.
 - v2 doesn't auto-include function libraries: a function in
   `lib\Foo.ahk` needs an `#Include`, even when the file is named after

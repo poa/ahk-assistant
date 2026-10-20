@@ -26,6 +26,13 @@ MODULES := Map(
 )
 DEFAULT_MODULES := MODULES.Clone() ; Fallbacks, kept from config.ahk changes
 
+;; - Window sizes
+; Ctrl+Win+arrows: each press of the same arrow steps the window through
+; these parts of the screen, then starts over. To change, put e.g.
+; WINDOW_STEPS := [3/4, 1/2, 1/4] in config.ahk.
+WINDOW_STEPS := [2/3, 1/2, 1/3]
+DEFAULT_WINDOW_STEPS := WINDOW_STEPS.Clone() ; Fallback, kept from config.ahk changes
+
 ;; - Menu hotkeys
 ; The combos that open the "combo, then key" menus: modifiers (Ctrl, Alt,
 ; Shift, Win) and a key, joined with "+". "" turns a menu off. To change

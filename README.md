@@ -54,6 +54,7 @@ with Ctrl+Alt+R.
 | `TRACKERS` | example Jira and YouTrack | Issue trackers for Alt+Shift+L, `t` |
 | `MENU_KEYS` | the combos below | Combos that open the menus |
 | `MODULES` | all on but `hotstrings` | Feature modules that are on |
+| `WINDOW_STEPS` | `[2/3, 1/2, 1/3]` | Sizes that Ctrl+Win+arrows step through |
 
 `MODULES` turns each module of `lib/` on (`true`) or off (`false`):
 `emoji`, `datetime`, `markup` (link and code menus), `hotkeys` (global
@@ -216,7 +217,7 @@ The markup depends on the active window title:
 
 | Hotkey | Action |
 |---|---|
-| Ctrl+Win+←/→/↑/↓ | Fill the left/right/top/bottom half of the monitor |
+| Ctrl+Win+←/→/↑/↓ | Fill the left/right/top/bottom 2/3 of the monitor; press again for 1/2, then 1/3, then 2/3 again (`WINDOW_STEPS`) |
 | Win+↑ | Maximize |
 | Win+↓ | Restore if maximized, else minimize |
 | Ctrl+Win+Numpad8/2/4/6 | Fill the top/bottom/left/right half |
@@ -226,6 +227,14 @@ The markup depends on the active window title:
 
 Ctrl+Win+←/→ replace Windows' virtual desktop switching. The numpad
 keys need NumLock on.
+
+Ctrl+Win+arrows step through the sizes in `WINDOW_STEPS` (part of the
+monitor's width for ←/→, of its height for ↑/↓; the other side stays
+full). A press is the next step only for the same window and arrow,
+with the window not moved or resized since; anything else starts at
+the first size. Change the sizes in `config.ahk`, e.g.
+`WINDOW_STEPS := [3/4, 1/2, 1/4]`; a bad list is reported at startup
+and the default is used.
 
 ### Script
 
@@ -251,7 +260,7 @@ lib/                  modules
   diag.ahk            window/monitor/DPI/locale info
   mouse.ahk           mouse precision mode
   hotstrings.ahk      Russian abbreviations (off by default)
-tests/                unit, module-guard and README hotkey checks
+tests/                unit, module-guard, window-size and README checks
 docs/                 screenshots
 .claude/              Claude Code: validate-on-edit hook
 .ai/                  AI-assisted work: plans and decision log

@@ -362,7 +362,8 @@ ModuleProblems() {
     return problems
 }
 
-/** Show the problems of MENU_KEYS and MODULES, if any, in one message box
+/** Show the problems of MENU_KEYS, MODULES and WINDOW_STEPS, if any, in one
+message box
 */
 ReportConfig() {
     text := ""
@@ -370,6 +371,8 @@ ReportConfig() {
         text .= "`n- MENU_KEYS " problem
     for problem in ModuleProblems()
         text .= "`n- MODULES " problem
+    for problem in WindowStepsProblems()
+        text .= "`n- WINDOW_STEPS " problem
     if (text != "")
         MsgBox "Settings in config.ahk:" text, "Assistant: settings", "Icon!"
 }
