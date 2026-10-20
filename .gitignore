@@ -1,0 +1,15 @@
+# Settings of this machine (defaults: config.default.ahk)
+config.ahk
+
+# Logs
+*.log
+
+# Editors
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Private terms for the pre-commit check (see AGENTS.md, Git)
+.private-terms

@@ -1,0 +1,8 @@
+# Shell scripts run in bash (WSL, Git Bash): keep LF even with core.autocrlf
+*.sh text eol=lf
+
+# AutoHotkey scripts: CRLF in the working tree on every machine (the
+# Windows interpreters and editors expect it), LF in the repository
+*.ahk text eol=crlf
+# Docs: LF everywhere
+*.md text eol=lf
