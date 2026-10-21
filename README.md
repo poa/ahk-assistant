@@ -120,6 +120,9 @@ menus are defaults; `MENU_KEYS` changes them (see Configuration).
 Apps and services are recognised by the rules in `AppRules()` and
 `ServiceRules()` in `lib/tools.ahk`. A browser tab counts as both its
 browser and its service: the Firefox keys also work on Confluence.
+Services are found by the page title in any browser (Brave, Chrome,
+Edge, Firefox, Opera, Vivaldi): the browser's name at the end of the
+window title is ignored.
 
 - **Adventure IDE, Burp Suite, Confluence:** Ctrl+Ins / Shift+Ins /
   Shift+Del work as copy / paste / cut.

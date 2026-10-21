@@ -471,7 +471,8 @@ GetMarkupTarget() {
 ;; - Active app and service
 ; A window has one app (the program, matched by class or exe) and at most
 ; one service (the site or document, matched by title): Confluence in
-; Firefox is app "firefox" and service "confluence". Add new apps and
+; Firefox is app "firefox" and service "confluence". Service rules see the
+; page title, without the browser's name (PageTitle()). Add new apps and
 ; services to the rule tables only.
 
 /** Alias of the program that owns the active window, or "general"
@@ -489,13 +490,13 @@ IsActiveApp(alias) {
 /** Alias of the service shown in the active window, or "general"
 */
 GetActiveService() {
-    return MatchActiveWin(ServiceRules())
+    return MatchActiveWin(ServiceRules(), , true)
 }
 
 /** True if the active window shows the service `alias`
 */
 IsActiveService(alias) {
-    return MatchActiveWin(ServiceRules(), alias) = alias
+    return MatchActiveWin(ServiceRules(), alias, true) = alias
 }
 
 /** Programs. First match wins, so exact rules (class, exe) come first.
@@ -515,24 +516,37 @@ AppRules() {
     return rules
 }
 
-/** Services, matched by title. Same rule format as AppRules().
+/** Services, matched by the page title: the window title without the
+browser's name (PageTitle()). Same rule format as AppRules().
 */
 ServiceRules() {
     static rules := [
         {alias: "confluence", title: "(- Confluence(\s|$))|^(Wiki|Confl)$"}, ; + renamed windows
-        {alias: "jira", title: "i)Jira$"}, ; tab titles end with "- Jira" or "- <Company> JIRA"
+        {alias: "jira", title: "i)Jira$"}, ; page titles end with "- Jira" or "- <Company> JIRA"
     ]
     return rules
 }
 
-/** Alias of the first rule that matches the active window, or "general".
-With `alias`, only the rules named `alias` are tried.
+/** Window title without the browser's name at its end ("X - Jira - Brave"
+-> "X - Jira"), so service rules see the page title; other titles unchanged
 */
-MatchActiveWin(rules, alias := "") {
+PageTitle(title) {
+    static suffix := " [-—] (Brave|Google Chrome|Microsoft\x{200B}? Edge"
+        . "|Mozilla Firefox( Private Browsing)?|Opera|Vivaldi)$"
+    return RegExReplace(title, suffix, "", , 1)
+}
+
+/** Alias of the first rule that matches the active window, or "general".
+With `alias`, only the rules named `alias` are tried. With `byPage`, the
+rules see the page title (PageTitle()).
+*/
+MatchActiveWin(rules, alias := "", byPage := false) {
     title := winClass := exe := ""
     if hwnd := WinExist("A") {
         try {   ; the window may close, or deny access to its process
             title := WinGetTitle(hwnd)
+            if byPage
+                title := PageTitle(title)
             winClass := WinGetClass(hwnd)
             exe := WinGetProcessName(hwnd)
         }

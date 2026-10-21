@@ -20,11 +20,14 @@ DEFAULT_MENU_KEYS := Map("link", "Alt+Shift+L", "code", "Alt+``", "codeblock", "
     , "t4", "Ctrl+Alt+Shift+F9", "t5", "Ctrl+Alt+Shift+F11")
 MENU_KEYS := DEFAULT_MENU_KEYS.Clone()
 ; The modules of the included files, and "test" for the menu checks
-DEFAULT_MODULES := Map("markup", true, "test", true)
+DEFAULT_MODULES := Map("markup", true, "window", true, "test", true)
 MODULES := DEFAULT_MODULES.Clone()
+WINDOW_STEPS := [2/3, 1/2, 1/3] ; ReportConfig() checks it (lib/window.ahk)
+DEFAULT_WINDOW_STEPS := WINDOW_STEPS.Clone()
 Critical ; Keeps the ReportConfig() timer from opening a message box mid-run
 #Include %A_ScriptDir%\..\lib\tools.ahk
 #Include %A_ScriptDir%\..\lib\snippets-markup.ahk
+#Include %A_ScriptDir%\..\lib\window.ahk
 
 checks := 0
 failures := 0
@@ -83,6 +86,19 @@ Check("service jira company title", MatchWinRules(rules, "[AB-1] Fix it - Exampl
 Check("service jira keyword in the middle", MatchWinRules(rules, "Jira notes - Docs", "", ""), "general")
 Check("service confluence", MatchWinRules(rules, "Page - Confluence", "", ""), "confluence")
 Check("service general", MatchWinRules(rules, "Notepad", "", ""), "general")
+
+; Service rules see the page title: the browser's name is cut off
+Check("page title brave", PageTitle("[AB-1] Fix it - Example Corp JIRA - Brave"), "[AB-1] Fix it - Example Corp JIRA")
+Check("page title chrome", PageTitle("Page - Confluence - Google Chrome"), "Page - Confluence")
+Check("page title firefox", PageTitle("[AB-1] Fix it - Jira — Mozilla Firefox"), "[AB-1] Fix it - Jira")
+Check("page title firefox private", PageTitle("[AB-1] Fix it - Jira — Mozilla Firefox Private Browsing"), "[AB-1] Fix it - Jira")
+Check("page title edge", PageTitle("[AB-1] Fix it - Jira - Microsoft Edge"), "[AB-1] Fix it - Jira")
+Check("page title edge zero-width space", PageTitle("[AB-1] Fix it - Jira - Microsoft" Chr(0x200B) " Edge"), "[AB-1] Fix it - Jira")
+Check("page title no browser", PageTitle("[AB-1] Fix it - Jira"), "[AB-1] Fix it - Jira")
+Check("page title browser in the middle", PageTitle("Brave - New World - Docs"), "Brave - New World - Docs")
+Check("page title one suffix only", PageTitle("X - Brave - Brave"), "X - Brave")
+Check("service jira in brave", MatchWinRules(rules, PageTitle("[AB-1] Fix it - Example Corp JIRA - Brave"), "", ""), "jira")
+Check("service confluence in chrome", MatchWinRules(rules, PageTitle("Page - Confluence - Google Chrome"), "", ""), "confluence")
 apps := AppRules()
 Check("app mattermost", MatchWinRules(apps, "Town Square - Mattermost", "Chrome_WidgetWin_1", "Mattermost.exe"), "mattermost")
 Check("app other electron app", MatchWinRules(apps, "Slack", "Chrome_WidgetWin_1", "slack.exe"), "general")
@@ -225,7 +241,7 @@ CheckModules() {
     problems := ModuleProblems()
     Check("module problem count", problems.Length, 2)
     Check("module problem value", problems[1], 'markup: "off" is not true or false')
-    Check("module problem typo", problems[2], 'mouze: no such module (modules: markup, test)')
+    Check("module problem typo", problems[2], 'mouze: no such module (modules: markup, test, window)')
     MODULES := DEFAULT_MODULES.Clone()
 }
 CheckModules()

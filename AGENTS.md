@@ -225,6 +225,10 @@ and press the hotkey. If you couldn't test by hand, say so.
   - To support a new app or service, add a rule to `AppRules()` or
     `ServiceRules()`. Don't match window titles, classes or exes
     anywhere else.
+  - Service rules match the page title: `PageTitle()` cuts the
+    browser's name off the window title (`X - Jira - Brave` ->
+    `X - Jira`), so a rule needs no browser suffixes. A new browser
+    goes into `PageTitle()`.
   - Markup snippets use `GetMarkupTarget()` (built on the service).
 - When adding, changing or removing a hotkey, update the tables in
   `README.md`.
