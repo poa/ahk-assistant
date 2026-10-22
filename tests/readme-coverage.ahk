@@ -112,19 +112,23 @@ for path in files {
     }
 }
 
-; Menu hotkeys: registered at startup from MENU_KEYS ("Alt+Shift+E")
+; Configurable hotkeys: registered at startup from MENU_KEYS and MOUSE_KEYS
+; ("Alt+Shift+E", "XButton1")
 inMap := false
 for line in StrSplit(StrReplace(FileRead(A_ScriptDir "\..\config.default.ahk", "UTF-8"), "`r"), "`n") {
-    if (RegExMatch(line, "^MENU_KEYS := Map\(")) {
+    if (RegExMatch(line, "^(MENU|MOUSE)_KEYS := Map\(")) {
         inMap := true
     } else if (inMap && SubStr(line, 1, 1) = ")") {
-        break
+        inMap := false
     } else if (inMap && RegExMatch(line, '"(\w+)", *"([^"]+)"', &m)) {
         parts := StrSplit(StrReplace(m[2], "````", "``"), "+") ; "Alt+``" is Alt+`
         key := parts.Pop()
         name := CanonName(parts, key)
+        where := "config.default.ahk:" A_Index " (" m[1] ")"
         if !codeKeys.Has(name)
-            codeKeys[name] := "config.default.ahk:" A_Index " (" m[1] ")"
+            codeKeys[name] := where
+        if (parts.Length = 0 && !bareKeys.Has(key))
+            bareKeys[key] := where
     }
 }
 

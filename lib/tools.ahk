@@ -254,59 +254,70 @@ HotkeyToSend(hotkeyName) {
     return RegExReplace(hotkeyName, "^([\^!+#]*)(.+)$", "$1{$2}")
 }
 
-/** State of the menu hotkeys: the ones taken, the module condition of each,
-and the config problems found
+/** State of the configurable hotkeys (MENU_KEYS, MOUSE_KEYS): the ones
+taken, the module condition of each, the settings seen, and the config
+problems found
 */
-class MenuKeys {
-    static Taken := Map()    ; AHK hotkey name -> menu name
+class ComboKeys {
+    static Taken := Map()    ; AHK hotkey name -> "SETTING name"
     static Criteria := Map() ; AHK hotkey name -> its HotIf callback
-    static Problems := []
+    static Settings := Map() ; Setting name -> [keys, defaults]
+    static Problems := []    ; Lines for ReportConfig(), each naming its setting
 }
 
 /** Register the hotkey that opens menu `name` (a key of MENU_KEYS) of
-module `module` (a key of MODULES)
-The combo comes from MENU_KEYS (config.ahk), or DEFAULT_MENU_KEYS if the
-user's map lacks the name; "" turns the menu off. A bad combo, or one that
-another menu already uses, is noted for ReportConfig() and the default is
-used instead. The hotkey is active only while its module is on. Returns the
-AHK hotkey name, or "" if the menu has none.
+module `module` (a key of MODULES); see SettingHotkey()
 */
 MenuHotkey(name, module, callback) {
+    return SettingHotkey("MENU_KEYS", MENU_KEYS, DEFAULT_MENU_KEYS, name, module, callback)
+}
+
+/** Register the hotkey `name` of combo setting `setting` ("MOUSE_KEYS"),
+for module `module` (a key of MODULES)
+The combo comes from `keys` (the setting, changed in config.ahk), or
+`defaults` if the user's map lacks the name; "" turns the hotkey off. A bad
+combo, or one that another hotkey already uses, is noted for ReportConfig()
+and the default is used instead. The hotkey is active only while its module
+is on. Returns the AHK hotkey name, or "" if there is none.
+*/
+SettingHotkey(setting, keys, defaults, name, module, callback) {
     static reportSet := false
     if (!reportSet) {
         reportSet := true
-        SetTimer ReportConfig, -1 ; After startup, once every menu is registered
+        SetTimer ReportConfig, -1 ; After startup, once every hotkey is registered
     }
-    defaultCombo := DEFAULT_MENU_KEYS[name] ; An unknown name is a bug: let it throw
-    DEFAULT_MODULES[module]                 ; The same for an unknown module
-    combo := MENU_KEYS.Get(name, defaultCombo)
+    ComboKeys.Settings[setting] := [keys, defaults]
+    defaultCombo := defaults[name] ; An unknown name is a bug: let it throw
+    DEFAULT_MODULES[module]        ; The same for an unknown module
+    combo := keys.Get(name, defaultCombo)
     if (combo = "")
         return ""
-    hotkeyName := TryMenuCombo(name, combo, module, callback)
+    hotkeyName := TryCombo(setting, name, combo, module, callback)
     if (hotkeyName = "" && combo != defaultCombo)
-        hotkeyName := TryMenuCombo(name, defaultCombo, module, callback, " (the default)")
+        hotkeyName := TryCombo(setting, name, defaultCombo, module, callback, " (the default)")
     return hotkeyName
 }
 
-/** Register `combo` for menu `name`; on failure note why and return ""
+/** Register `combo` for hotkey `name` of `setting`; on failure note why and
+return ""
 */
-TryMenuCombo(name, combo, module, callback, which := "") {
+TryCombo(setting, name, combo, module, callback, which := "") {
     criterion := (*) => ModuleOn(module)
     try {
         hotkeyName := ComboToHotkey(combo)
-        if (MenuKeys.Taken.Has(hotkeyName))
-            throw ValueError("already used by " MenuKeys.Taken[hotkeyName], -1, combo)
+        if (ComboKeys.Taken.Has(hotkeyName))
+            throw ValueError("already used by " ComboKeys.Taken[hotkeyName], -1, combo)
         HotIf criterion
         try
             Hotkey hotkeyName, callback, "On"
         finally
             HotIf
     } catch as err {
-        MenuKeys.Problems.Push(name ': "' combo '"' which ': ' err.Message)
+        ComboKeys.Problems.Push(setting " " name ': "' combo '"' which ': ' err.Message)
         return ""
     }
-    MenuKeys.Taken[hotkeyName] := name
-    MenuKeys.Criteria[hotkeyName] := criterion
+    ComboKeys.Taken[hotkeyName] := setting " " name
+    ComboKeys.Criteria[hotkeyName] := criterion
     return hotkeyName
 }
 
@@ -315,7 +326,7 @@ TryMenuCombo(name, combo, module, callback, which := "") {
 off while the combo is sent, so it doesn't open the menu again.
 */
 PassMenuCombo(hotkeyName) {
-    HotIf MenuKeys.Criteria[hotkeyName]
+    HotIf ComboKeys.Criteria[hotkeyName]
     try {
         Hotkey hotkeyName, "Off"
         Send HotkeyToSend(hotkeyName)
@@ -324,14 +335,16 @@ PassMenuCombo(hotkeyName) {
         HotIf
 }
 
-/** Problems of the menu hotkey settings: the ones found while registering,
-and MENU_KEYS names that no menu has (a typo in config.ahk)
+/** Problems of the combo settings: the ones noted at startup, and names in
+a setting that no hotkey has (a typo in config.ahk)
 */
-MenuKeyProblems() {
-    problems := MenuKeys.Problems.Clone()
-    for name in MENU_KEYS {
-        if (!DEFAULT_MENU_KEYS.Has(name))
-            problems.Push(name ': no such menu (menus: ' JoinKeys(DEFAULT_MENU_KEYS) ')')
+ComboProblems() {
+    problems := ComboKeys.Problems.Clone()
+    for setting, maps in ComboKeys.Settings {
+        for name in maps[1] {
+            if (!maps[2].Has(name))
+                problems.Push(setting " " name ': no such key (keys: ' JoinKeys(maps[2]) ')')
+        }
     }
     return problems
 }
@@ -362,13 +375,13 @@ ModuleProblems() {
     return problems
 }
 
-/** Show the problems of MENU_KEYS, MODULES and WINDOW_STEPS, if any, in one
-message box
+/** Show the problems of MENU_KEYS, MOUSE_KEYS, MOUSE_SLOW_SPEED, MODULES and
+WINDOW_STEPS, if any, in one message box
 */
 ReportConfig() {
     text := ""
-    for problem in MenuKeyProblems()
-        text .= "`n- MENU_KEYS " problem
+    for problem in ComboProblems()
+        text .= "`n- " problem
     for problem in ModuleProblems()
         text .= "`n- MODULES " problem
     for problem in WindowStepsProblems()

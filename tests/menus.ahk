@@ -198,8 +198,8 @@ Check("hotkey to send named key", HotkeyToSend("^Escape"), "^{Escape}")
 ; MenuHotkey(): config combo, else the default; problems are noted, not thrown
 CheckMenuHotkeys() {
     global MENU_KEYS
-    Check("menu markup registered", MenuKeys.Taken.Count, 3)
-    Check("menu link", MenuKeys.Taken["!+sc026"], "link")
+    Check("menu markup registered", ComboKeys.Taken.Count, 3)
+    Check("menu link", ComboKeys.Taken["!+sc026"], "MENU_KEYS link")
     Check("menu config combo", MenuHotkey("t1", "test", (*) => 0), "^!+F11")
     MENU_KEYS["t2"] := "Ctrl+Alt+Shift+F11" ; Taken by t1: falls back to the default
     Check("menu duplicate uses default", MenuHotkey("t2", "test", (*) => 0), "^!+F12")
@@ -210,23 +210,40 @@ CheckMenuHotkeys() {
     MENU_KEYS["t5"] := "Ctrl+Alt+Shift+F12" ; Taken, and so is its default (F11)
     Check("menu no free combo", MenuHotkey("t5", "test", (*) => 0), "")
     MENU_KEYS.Delete("code") ; A config map without the name uses the default
-    MenuKeys.Taken.Delete("!sc029")
+    ComboKeys.Taken.Delete("!sc029")
     Check("menu missing name uses default", MenuHotkey("code", "markup", (*) => 0), "!sc029")
     MENU_KEYS["emojii"] := "Alt+Shift+E" ; A typo in config.ahk
-    problems := MenuKeyProblems()
+    problems := ComboProblems()
     Check("menu problem count", problems.Length, 5)
-    Check("menu problem duplicate", problems[1], 't2: "Ctrl+Alt+Shift+F11": already used by t1')
-    Check("menu problem bad", problems[2], 't3: "Bad+X": unknown modifier `'Bad`' (use Ctrl, Alt, Shift, Win)')
-    Check("menu problem no default", problems[4], 't5: "Ctrl+Alt+Shift+F11" (the default): already used by t1')
-    Check("menu problem typo", problems[5], 'emojii: no such menu (menus: code, codeblock, link, t1, t2, t3, t4, t5)')
+    Check("menu problem duplicate", problems[1], 'MENU_KEYS t2: "Ctrl+Alt+Shift+F11": already used by MENU_KEYS t1')
+    Check("menu problem bad", problems[2], 'MENU_KEYS t3: "Bad+X": unknown modifier `'Bad`' (use Ctrl, Alt, Shift, Win)')
+    Check("menu problem no default", problems[4], 'MENU_KEYS t5: "Ctrl+Alt+Shift+F11" (the default): already used by MENU_KEYS t1')
+    Check("menu problem typo", problems[5], 'MENU_KEYS emojii: no such key (keys: code, codeblock, link, t1, t2, t3, t4, t5)')
 }
 CheckMenuHotkeys()
+
+; SettingHotkey(): another combo setting (as MOUSE_KEYS), sharing the taken combos
+CheckSettingHotkeys() {
+    defaults := Map("hold", "XButton2", "toggle", "Ctrl+Alt+Shift+F8")
+    keys := defaults.Clone()
+    keys["toggle"] := "Ctrl+Alt+Shift+F11" ; Taken by MENU_KEYS t1
+    keys["hould"] := "XButton1"            ; A typo in config.ahk
+    Check("setting mouse button alone", SettingHotkey("TEST_KEYS", keys, defaults, "hold", "test", (*) => 0), "XButton2")
+    Check("setting clash with a menu uses default"
+        , SettingHotkey("TEST_KEYS", keys, defaults, "toggle", "test", (*) => 0), "^!+F8")
+    Check("setting taken name", ComboKeys.Taken["XButton2"], "TEST_KEYS hold")
+    problems := ComboProblems()
+    Check("setting problem count", problems.Length, 7)
+    Check("setting problem clash", problems[5], 'TEST_KEYS toggle: "Ctrl+Alt+Shift+F11": already used by MENU_KEYS t1')
+    Check("setting problem typo", problems[7], 'TEST_KEYS hould: no such key (keys: hold, toggle)')
+}
+CheckSettingHotkeys()
 
 ; ModuleOn(): the MODULES value, the default for a bad value or a missing name
 CheckModules() {
     global MODULES
     Check("module on", ModuleOn("markup"), true)
-    criterion := MenuKeys.Criteria["!+sc026"] ; Alt+Shift+L, a "markup" menu
+    criterion := ComboKeys.Criteria["!+sc026"] ; Alt+Shift+L, a "markup" menu
     Check("menu condition follows module on", criterion(""), true)
     MODULES["markup"] := false
     Check("module off", ModuleOn("markup"), false)

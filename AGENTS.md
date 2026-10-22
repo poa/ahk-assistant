@@ -90,7 +90,7 @@ failures and a summary, and exits with the number of failures:
 
 Hotkeys against the README (the tables must match the code):
 `tests/readme-coverage.ahk` lists every hotkey of `Assistant.ahk` and
-`lib/`, and the default menu combos (`MENU_KEYS`), as ok or MISSING,
+`lib/`, and the default combos (`MENU_KEYS`, `MOUSE_KEYS`), as ok or MISSING,
 then the README notations with no such hotkey, for a manual check. The
 exit code is the number of missing hotkeys. Run it by hand after
 changing a hotkey; no hook runs it. A hotkey counts as documented if the
@@ -107,7 +107,7 @@ manual. Add a check there when you change `KeyNameUS()`, `MakeLink()`,
 Module switches (`MODULES`): `tests/modules.ahk` reads each `lib/`
 module and fails if a hotkey or hotstring isn't under a `#HotIf` with
 its module's `ModuleOn("…")`, if a file doesn't end with a bare `#HotIf`,
-if a `MenuHotkey()` call names another module, or if `MODULES` and the
+if a `MenuHotkey()` or `SettingHotkey()` call names another module, or if `MODULES` and the
 files disagree. A new `lib/` file must be added to its `fileModules`
 map. It exits with the number of failures:
 
@@ -196,8 +196,11 @@ and press the hotkey. If you couldn't test by hand, say so.
   and is reported in one message after startup (`ReportConfig()`). A
   callback gets the hotkey name; to pass the combo on, use
   `PassMenuCombo(name)`, not a fixed combo. A new menu needs an entry in
-  `MENU_KEYS`. Other hotkeys, including app-scoped ones, stay fixed
-  `x::` definitions.
+  `MENU_KEYS`. The mouse hotkeys work the same way, with their own map
+  `MOUSE_KEYS`: `SettingHotkey(setting, keys, defaults, name, module,
+  callback)` registers a combo of any such map (`MenuHotkey()` is a call
+  of it), and the duplicate check covers all the maps. Other hotkeys,
+  including app-scoped ones, stay fixed `x::` definitions.
 - **Modules can be switched off** (`MODULES`, checked by `ModuleOn()`).
   All modules are always included (`#Include` can't depend on a
   setting); a switched-off module's keys just don't fire. So every
@@ -210,7 +213,8 @@ and press the hotkey. If you couldn't test by hand, say so.
   and in `fileModules` (`tests/modules.ahk`). Keys that must always work
   go in `lib/script.ahk`.
 - Settings and globals live in `config.default.ahk` (tracked: `DEBUG`,
-  `DELAY`, `HINTS`, `MENU_KEYS`, `MODULES`, `TRACKERS`, `WINDOW_STEPS`). `config.ahk` is the
+  `DELAY`, `HINTS`, `MENU_KEYS`, `MODULES`, `MOUSE_KEYS`,
+  `MOUSE_SLOW_SPEED`, `TRACKERS`, `WINDOW_STEPS`). `config.ahk` is the
   user's optional, untracked override, included after it with
   `#Include *i`. Never put machine- or company-specific values (hosts,
   titles) in tracked files: the default file holds generic examples and

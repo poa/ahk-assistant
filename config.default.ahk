@@ -33,6 +33,21 @@ DEFAULT_MODULES := MODULES.Clone() ; Fallbacks, kept from config.ahk changes
 WINDOW_STEPS := [2/3, 1/2, 1/3]
 DEFAULT_WINDOW_STEPS := WINDOW_STEPS.Clone() ; Fallback, kept from config.ahk changes
 
+;; - Mouse
+; Precision mode: a slower mouse. "hold": slow while the combo's key is
+; held; "toggle": slow until pressed again. Combos are written as in
+; MENU_KEYS (below); "" turns one off. Mouse buttons need no modifier.
+; XButton1 is the back side button: while it's the hold key, it no longer
+; works as Back. Example: MOUSE_KEYS["hold"] := "Ctrl+Alt+N" in config.ahk.
+MOUSE_KEYS := Map(
+    "hold", "XButton1",
+    "toggle", "Ctrl+Alt+M"
+)
+DEFAULT_MOUSE_KEYS := MOUSE_KEYS.Clone() ; Fallbacks, kept from config.ahk changes
+; Speed in precision mode, 1 (slowest) to 20; the normal speed is Windows'
+MOUSE_SLOW_SPEED := 1
+DEFAULT_MOUSE_SLOW_SPEED := MOUSE_SLOW_SPEED
+
 ;; - Menu hotkeys
 ; The combos that open the "combo, then key" menus: modifiers (Ctrl, Alt,
 ; Shift, Win) and a key, joined with "+". "" turns a menu off. To change

@@ -55,6 +55,8 @@ with Ctrl+Alt+R.
 | `MENU_KEYS` | the combos below | Combos that open the menus |
 | `MODULES` | all on but `hotstrings` | Feature modules that are on |
 | `WINDOW_STEPS` | `[2/3, 1/2, 1/3]` | Sizes that Ctrl+Win+arrows step through |
+| `MOUSE_KEYS` | XButton1, Ctrl+Alt+M | Slow mouse hotkeys: hold, toggle |
+| `MOUSE_SLOW_SPEED` | `1` | Slow mouse speed, 1 (slowest) to 20 |
 
 `MODULES` turns each module of `lib/` on (`true`) or off (`false`):
 `emoji`, `datetime`, `markup` (link and code menus), `hotkeys` (global
@@ -83,6 +85,22 @@ startup, and the menu keeps its default. The same message lists
 `MODULES` mistakes (an unknown name, a value other than `true` or
 `false`).
 
+`MOUSE_KEYS` holds the slow mouse hotkeys, written the same way: `hold`
+(slow while its key is held, XButton1: the back side button of the
+mouse) and `toggle` (Ctrl+Alt+M). A mouse button needs no modifier.
+While XButton1 is the hold key, it no longer works as Back in browsers;
+pick another combo, or `""` to turn hold mode off. `MOUSE_SLOW_SPEED` is
+the slow speed (1-20; the normal speed is your Windows setting). Example
+`config.ahk`:
+
+```ahk
+MOUSE_KEYS["hold"] := "XButton2"
+MOUSE_KEYS["toggle"] := "Ctrl+Alt+N"
+MOUSE_SLOW_SPEED := 4
+```
+
+A mistake in them is reported in the same startup message.
+
 `TRACKERS` is a `Map` of trackers; each has a `host` and a `path`
 (regular expressions). Example `config.ahk`:
 
@@ -109,8 +127,8 @@ menus are defaults; `MENU_KEYS` changes them (see Configuration).
 | Wheel over taskbar | Volume up / down |
 | NumpadDot | Always types `.` |
 | Win+Shift+K | Bluetooth panel |
-| Ctrl+Alt+LShift (hold) | Slow mouse while LShift is down |
-| RCtrl+RAlt | Toggle slow mouse |
+| XButton1 (mouse side button, hold) | Slow mouse while held (`MOUSE_KEYS`) |
+| Ctrl+Alt+M | Toggle slow mouse (`MOUSE_KEYS`) |
 | Browser_Home | Monitor info |
 | Browser_Favorites | Live window info tooltip |
 | Esc | Stops the live info tooltip |

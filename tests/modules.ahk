@@ -3,7 +3,7 @@
 ; Checks that every module in lib/ can be switched off (MODULES): each
 ; hotkey and hotstring of a module file is under a #HotIf that contains
 ; ModuleOn("<its module>"), each file ends with a bare #HotIf, every
-; MenuHotkey() call names the file's module, and MODULES in
+; MenuHotkey() and SettingHotkey() call names the file's module, and MODULES in
 ; config.default.ahk lists exactly the modules of lib/. Prints failures and
 ; a summary, exits with the number of failures (0 = OK):
 ;   AutoHotkey64.exe /ErrorStdOut tests\modules.ahk
@@ -49,10 +49,10 @@ CheckFile(path, fileName, module) {
             condition := RegExReplace(m[1], "\s+;.*$")
             continue
         }
-        if (RegExMatch(line, '^MenuHotkey\("\w+", "(\w+)"', &m)) {
+        if (RegExMatch(line, '^(MenuHotkey|SettingHotkey)\(("\w+", \w+, \w+, )?"\w+", "(\w+)"', &m)) {
             checks++
-            if (m[1] != module)
-                Fail(where ": MenuHotkey() names module " m[1] ", the file's is " module)
+            if (m[3] != module)
+                Fail(where ": " m[1] "() names module " m[3] ", the file's is " module)
             continue
         }
         ; A hotkey ("^!x::", "~Esc::", "a & b::") or a hotstring ("::btw::", ":*:x::");
