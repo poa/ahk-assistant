@@ -270,6 +270,16 @@ and press the hotkey. If you couldn't test by hand, say so.
   borders (7 px at 100%, left, right and bottom), so `WinMove` with a
   visible size leaves the window too big and overlapping its neighbour.
   `MoveWindowFrame()` adds the window's real borders (from DWM).
+- **Measure and move a window in its own DPI awareness:** wrap the work
+  in `InWindowDpi(hwnd, fn)` (`lib/window.ahk`), as `WindowMove()` and
+  `WindowStep()` do. AutoHotkey is only system-DPI aware, so with
+  monitors of different scaling Windows reports scaled coordinates (a
+  1920 px monitor at 100% next to a 150% one is 2880 px wide), and a
+  modern app's window lands wrong. A move in per-monitor mode for every
+  window doesn't work either: Windows rescales an older app's window
+  whose border reaches into a monitor of other scaling. DWM's frame
+  bounds are always real pixels; `FrameBorders()` scales them to the
+  caller's coordinates.
 - v2 reads scripts as UTF-8, with or without a BOM.
 - v2 doesn't auto-include function libraries: a function in
   `lib\Foo.ahk` needs an `#Include`, even when the file is named after

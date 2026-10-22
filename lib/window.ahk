@@ -50,8 +50,13 @@ ontopToggle(winTitle) {
 */
 WindowMove(dir) {
     ; Target the active window by its ID: its title could match other windows
-    if !(hwnd := WinExist("A"))
-        return
+    if (hwnd := WinExist("A"))
+        InWindowDpi(hwnd, () => MoveWindowTo(hwnd, dir))
+}
+
+/** WindowMove() for window `hwnd`, run by InWindowDpi()
+*/
+MoveWindowTo(hwnd, dir) {
     MonitorGetWorkArea GetMonitor(hwnd), &waLeft, &waTop, &waRight, &waBottom
     minMax := WinGetMinMax(hwnd)
 
@@ -79,6 +84,28 @@ WindowMove(dir) {
         MoveWindowFrame(hwnd, rect)
 }
 
+/** Run `fn` in the DPI awareness of window `hwnd`, then switch back
+Windows scales the coordinates (monitors, window positions) it reports to
+the caller's DPI awareness. AutoHotkey is only system-DPI aware, so with
+monitors of different scaling a 1920 px monitor at 100% next to a 150%
+one shows as 2880 px wide, and a modern (per-monitor aware) window can't
+be placed exactly. Measured and moved in the window's own awareness, the
+window gets the coordinates it works in: real pixels for a modern app,
+system-scaled ones for an older app (which Windows itself rescales near
+a monitor of other scaling). The rest of the script keeps its mode.
+*/
+InWindowDpi(hwnd, fn) {
+    ; 0 before Windows 10 1607: then everything stays as it is
+    context := DllCall("GetWindowDpiAwarenessContext", "Ptr", hwnd, "Ptr")
+    old := context ? DllCall("SetThreadDpiAwarenessContext", "Ptr", context, "Ptr") : 0
+    try
+        return fn()
+    finally {
+        if old
+            DllCall("SetThreadDpiAwarenessContext", "Ptr", old, "Ptr")
+    }
+}
+
 /** Move window `hwnd` so that its visible frame fills `rect` {x, y, w, h}
 Windows 10/11 windows have invisible resize borders (7 px at 100% scaling:
 left, right and bottom), so the outer rectangle is the visible one plus
@@ -99,16 +126,29 @@ MoveWindowFrame(hwnd, rect) {
 
 /** Invisible borders {left, top, right, bottom} of window `hwnd`: the gap
 between its outer rectangle and its visible frame (DWM's extended frame
-bounds); all 0 if DWM doesn't report the frame
+bounds), in the caller's coordinates; all 0 if DWM doesn't report the frame
+DWM reports real pixels in any DPI awareness, so the gap is measured in
+real pixels and scaled by the window's size in both.
 */
 FrameBorders(hwnd) {
-    WinGetPos &x, &y, &w, &h, hwnd
-    frame := Buffer(16)
-    if (DllCall("dwmapi\DwmGetWindowAttribute", "Ptr", hwnd, "UInt", 9 ; DWMWA_EXTENDED_FRAME_BOUNDS
-            , "Ptr", frame, "UInt", 16) != 0)
-        return {left: 0, top: 0, right: 0, bottom: 0}
-    return {left: NumGet(frame, 0, "Int") - x, top: NumGet(frame, 4, "Int") - y
-        , right: x + w - NumGet(frame, 8, "Int"), bottom: y + h - NumGet(frame, 12, "Int")}
+    none := {left: 0, top: 0, right: 0, bottom: 0}
+    WinGetPos , , &w, &h, hwnd
+    ; Per-monitor aware (v2): real pixels
+    old := DllCall("SetThreadDpiAwarenessContext", "Ptr", -4, "Ptr")
+    try {
+        WinGetPos &px, &py, &pw, &ph, hwnd
+        frame := Buffer(16)
+        failed := DllCall("dwmapi\DwmGetWindowAttribute", "Ptr", hwnd, "UInt", 9 ; DWMWA_EXTENDED_FRAME_BOUNDS
+            , "Ptr", frame, "UInt", 16)
+    } finally {
+        if old
+            DllCall("SetThreadDpiAwarenessContext", "Ptr", old, "Ptr")
+    }
+    if (failed || pw <= 0 || ph <= 0)
+        return none
+    sx := w / pw, sy := h / ph
+    return {left: Round((NumGet(frame, 0, "Int") - px) * sx), top: Round((NumGet(frame, 4, "Int") - py) * sy)
+        , right: Round((px + pw - NumGet(frame, 8, "Int")) * sx), bottom: Round((py + ph - NumGet(frame, 12, "Int")) * sy)}
 }
 
 /** Step the active window through WINDOW_STEPS of its monitor's work area,
@@ -118,9 +158,14 @@ the next size and wraps after the last. Anything else starts at the
 first size. A maximized window is restored first.
 */
 WindowStep(dir) {
+    if (hwnd := WinExist("A"))
+        InWindowDpi(hwnd, () => StepWindow(hwnd, dir))
+}
+
+/** WindowStep() for window `hwnd`, run by InWindowDpi()
+*/
+StepWindow(hwnd, dir) {
     static last := {hwnd: 0, dir: "", step: 0, rect: ""}
-    if !(hwnd := WinExist("A"))
-        return
     steps := WindowSteps()
     try {
         WinGetPos &x, &y, &w, &h, hwnd
