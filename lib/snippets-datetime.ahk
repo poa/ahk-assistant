@@ -9,11 +9,12 @@ MenuHotkey("datetime", "datetime", DateTimeMenu)
 DateTimeMenu(thisHotkey) {
     now := A_Now " L1033"
     stamps := Map( ; Key -> text; the hint lists them in key order
-        "a", FormatTime(now, "yyyy-MM-dd HH-mm-ss"), ; date + time
+        "a", FormatTime(now, "yyyy-MM-dd HH-mm-ss"), ; date + time (a - all)
         "d", FormatTime(now, "yyyy-MM-dd"),          ; date only
-        "s", FormatTime(now, "yyyy-MM-ddTHH:mm:ss"), ; date + time, ISO
+        "i", FormatTime(now, "yyyy-MM-ddTHH:mm:ss"), ; date + time, ISO (i - ISO)
+        "s", FormatTime(now, "yyyy-MM-dd-HHmm"),     ; date + hours and minutes (s - stamp)
         "t", FormatTime(now, "HH:mm:ss"),            ; time only
-        "w", FormatTime(now, "yyyy-MM-dd.ddd")       ; date + weekday
+        "w", FormatTime(now, "yyyy-MM-dd.ddd")       ; date + weekday (w - weekday)
     )
     HintText := "==Date and time=="
     for key, stamp in stamps
