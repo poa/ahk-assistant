@@ -13,6 +13,7 @@ DEFAULT_MENU_KEYS := Map(), MENU_KEYS := Map()
 DEFAULT_MODULES := Map("window", true), MODULES := DEFAULT_MODULES.Clone()
 WINDOW_STEPS := [2/3, 1/2, 1/3]
 DEFAULT_WINDOW_STEPS := WINDOW_STEPS.Clone()
+WINDOW_STEP_ONE_AXIS := true
 #Include %A_ScriptDir%\..\lib\tools.ahk
 #Include %A_ScriptDir%\..\lib\window.ahk
 
@@ -94,6 +95,14 @@ Check("step third", NextWindowStep(true, 2, 3), 3)
 Check("step wraps", NextWindowStep(true, 3, 3), 1)
 Check("step not a repeat resets", NextWindowStep(false, 2, 3), 1)
 Check("step after a shorter list", NextWindowStep(true, 5, 3), 3)
+
+; WINDOW_STEP_ONE_AXIS: the side across the arrow comes from the window
+AxisText(r) => r.x " " r.y " " r.w " " r.h
+winFrame := {x: 100, y: 50, w: 800, h: 600}
+Check("one axis up", AxisText(KeepCrossSide(RegionRect("Up", 0, 0, 1920, 1040, 2/3), winFrame, "Up")), "100 0 800 693")
+Check("one axis down", AxisText(KeepCrossSide(RegionRect("Down", 0, 0, 1920, 1040, 1/3), winFrame, "Down")), "100 693 800 347")
+Check("one axis left", AxisText(KeepCrossSide(RegionRect("Left", 0, 0, 1920, 1040, 1/2), winFrame, "Left")), "0 50 960 600")
+Check("one axis right", AxisText(KeepCrossSide(RegionRect("Right", 0, 0, 1920, 1040, 1/3), winFrame, "Right")), "1280 50 640 600")
 
 ; WINDOW_STEPS check
 ProblemsText(steps) {

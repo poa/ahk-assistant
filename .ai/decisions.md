@@ -24,3 +24,13 @@ names the one it supersedes.
   the minute (`2026-10-14-1805`).
 - **Why:** user preference; I for ISO, S for stamp.
 - **Rejected:** keeping ISO on `s`.
+
+## 2026-11-22: Ctrl+Win+arrows change only the arrow's axis
+
+- **Decision:** Ctrl+Win+Up/Down step only the window's height (its
+  width and left edge stay), Left/Right only its width. A setting,
+  `WINDOW_STEP_ONE_AXIS` (default `true`), brings back the old
+  behaviour (`false`: the other side fills the monitor).
+- **Why:** user preference; keep a window's width when resizing it
+  vertically.
+- **Rejected:** a fixed change with no setting.

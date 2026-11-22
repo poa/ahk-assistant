@@ -32,6 +32,9 @@ DEFAULT_MODULES := MODULES.Clone() ; Fallbacks, kept from config.ahk changes
 ; WINDOW_STEPS := [3/4, 1/2, 1/4] in config.ahk.
 WINDOW_STEPS := [2/3, 1/2, 1/3]
 DEFAULT_WINDOW_STEPS := WINDOW_STEPS.Clone() ; Fallback, kept from config.ahk changes
+; true: Ctrl+Win+Up/Down change only the height (the width and left edge
+; stay), Left/Right only the width; false: the other side fills the screen.
+WINDOW_STEP_ONE_AXIS := true
 
 ;; - Mouse
 ; Precision mode: a slower mouse. "hold": slow while the combo's key is

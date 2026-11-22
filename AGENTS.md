@@ -214,9 +214,9 @@ and press the hotkey. If you couldn't test by hand, say so.
   go in `lib/script.ahk`.
 - Settings and globals live in `config.default.ahk` (tracked: `DEBUG`,
   `DELAY`, `HINTS`, `MENU_KEYS`, `MODULES`, `MOUSE_KEYS`,
-  `MOUSE_SLOW_SPEED`, `TRACKERS`, `WINDOW_STEPS`). `config.ahk` is the
-  user's optional, untracked override, included after it with
-  `#Include *i`. Never put machine- or company-specific values (hosts,
+  `MOUSE_SLOW_SPEED`, `TRACKERS`, `WINDOW_STEPS`,
+  `WINDOW_STEP_ONE_AXIS`). `config.ahk` is the user's optional,
+  untracked override, included after it with `#Include *i`. Never put machine- or company-specific values (hosts,
   titles) in tracked files: the default file holds generic examples and
   the repository is public.
 - **Window detection** lives only in `lib/tools.ahk`. A window has one

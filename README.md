@@ -55,6 +55,7 @@ with Ctrl+Alt+R.
 | `MENU_KEYS` | the combos below | Combos that open the menus |
 | `MODULES` | all on but `hotstrings` | Feature modules that are on |
 | `WINDOW_STEPS` | `[2/3, 1/2, 1/3]` | Sizes that Ctrl+Win+arrows step through |
+| `WINDOW_STEP_ONE_AXIS` | `true` | Ctrl+Win+arrows keep the window's other side |
 | `MOUSE_KEYS` | XButton1, Ctrl+Alt+M | Slow mouse hotkeys: hold, toggle |
 | `MOUSE_SLOW_SPEED` | `1` | Slow mouse speed, 1 (slowest) to 20 |
 
@@ -239,7 +240,7 @@ The markup depends on the active window title:
 
 | Hotkey | Action |
 |---|---|
-| Ctrl+Win+←/→/↑/↓ | Fill the left/right/top/bottom 2/3 of the monitor; press again for 1/2, then 1/3, then 2/3 again (`WINDOW_STEPS`) |
+| Ctrl+Win+←/→/↑/↓ | Fill the left/right/top/bottom 2/3 of the monitor (the other side stays); press again for 1/2, then 1/3, then 2/3 again (`WINDOW_STEPS`) |
 | Win+↑ | Maximize |
 | Win+↓ | Restore if maximized, else minimize |
 | Ctrl+Win+Numpad8/2/4/6 | Fill the top/bottom/left/right half |
@@ -251,8 +252,9 @@ Ctrl+Win+←/→ replace Windows' virtual desktop switching. The numpad
 keys need NumLock on.
 
 Ctrl+Win+arrows step through the sizes in `WINDOW_STEPS` (part of the
-monitor's width for ←/→, of its height for ↑/↓; the other side stays
-full). A press is the next step only for the same window and arrow,
+monitor's width for ←/→, of its height for ↑/↓). The other side keeps
+the window's position and size (↑/↓ change only the height; a maximized window counts as full); with
+`WINDOW_STEP_ONE_AXIS := false` it fills the monitor. A press is the next step only for the same window and arrow,
 with the window not moved or resized since; anything else starts at
 the first size. Change the sizes in `config.ahk`, e.g.
 `WINDOW_STEPS := [3/4, 1/2, 1/4]`; a bad list is reported at startup

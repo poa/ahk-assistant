@@ -155,7 +155,9 @@ FrameBorders(hwnd) {
 toward `dir` ("Up", "Down", "Left", "Right")
 A repeated press (same window, same arrow, window untouched since) takes
 the next size and wraps after the last. Anything else starts at the
-first size. A maximized window is restored first.
+first size. A maximized window is restored first. With WINDOW_STEP_ONE_AXIS,
+the side across `dir` keeps its position and size (full for a maximized
+window).
 */
 WindowStep(dir) {
     if (hwnd := WinExist("A"))
@@ -171,18 +173,64 @@ StepWindow(hwnd, dir) {
         WinGetPos &x, &y, &w, &h, hwnd
         isRepeat := (hwnd = last.hwnd && dir = last.dir && (x " " y " " w " " h) = last.rect)
         step := NextWindowStep(isRepeat, last.step, steps.Length)
-        MonitorGetWorkArea GetMonitor(hwnd), &waLeft, &waTop, &waRight, &waBottom
-        if (WinGetMinMax(hwnd) = 1) {
-            WinRestore hwnd
-            Sleep 50
-        }
+        mon := GetMonitor(hwnd)
+        MonitorGetWorkArea mon, &waLeft, &waTop, &waRight, &waBottom
         rect := RegionRect(dir, waLeft, waTop, waRight, waBottom, steps[step])
+        ; A maximized window's other side was the full work area: RegionRect() already has it
+        if (WinGetMinMax(hwnd) = 1) {
+            RestoreWindowTo(hwnd, mon, rect)
+            Sleep 50
+        } else if WINDOW_STEP_ONE_AXIS {
+            WinGetPos &x, &y, &w, &h, hwnd
+            b := FrameBorders(hwnd)
+            rect := KeepCrossSide(rect, {x: x + b.left, y: y + b.top
+                , w: w - b.left - b.right, h: h - b.top - b.bottom}, dir)
+        }
         MoveWindowFrame(hwnd, rect)
         ; What the window really got: apps may round sizes or keep a minimum
         WinGetPos &x, &y, &w, &h, hwnd
     } catch
         return ; The window closed or denied access
     last := {hwnd: hwnd, dir: dir, step: step, rect: x " " y " " w " " h}
+}
+
+/** Restore maximized window `hwnd` on monitor `mon` straight to visible
+rectangle `rect`, without first showing its old restored size
+SetWindowPlacement() takes the outer rectangle in workspace coordinates:
+relative to the work area, unless it is a tool window.
+*/
+RestoreWindowTo(hwnd, mon, rect) {
+    MonitorGet mon, &mLeft, &mTop
+    MonitorGetWorkArea mon, &waLeft, &waTop
+    dx := dy := 0
+    if !(WinGetExStyle(hwnd) & 0x80) ; WS_EX_TOOLWINDOW
+        dx := waLeft - mLeft, dy := waTop - mTop
+    ; shortcut: borders are measured on the maximized window, with no top
+    ; border as on Windows 10/11; MoveWindowFrame() then corrects the rest
+    b := FrameBorders(hwnd)
+    x := rect.x - b.left - dx, y := rect.y - dy
+    wp := Buffer(44, 0) ; WINDOWPLACEMENT
+    NumPut "UInt", 44, wp
+    if !DllCall("GetWindowPlacement", "Ptr", hwnd, "Ptr", wp) {
+        WinRestore hwnd
+        return
+    }
+    NumPut "UInt", 9, wp, 8 ; showCmd: SW_RESTORE
+    NumPut "Int", x, "Int", y, "Int", x + rect.w + b.left + b.right
+        , "Int", y + rect.h + b.bottom, wp, 28 ; rcNormalPosition
+    if !DllCall("SetWindowPlacement", "Ptr", hwnd, "Ptr", wp)
+        WinRestore hwnd
+}
+
+/** `rect` with the side across `dir` taken from `frame` (the window's visible
+rectangle): x and width for "Up"/"Down", y and height for "Left"/"Right"
+*/
+KeepCrossSide(rect, frame, dir) {
+    if (dir = "Up" || dir = "Down")
+        rect.x := frame.x, rect.w := frame.w
+    else
+        rect.y := frame.y, rect.h := frame.h
+    return rect
 }
 
 /** Step number (1-based) for the next press: the one after `lastStep` for

@@ -24,6 +24,7 @@ DEFAULT_MODULES := Map("markup", true, "window", true, "test", true)
 MODULES := DEFAULT_MODULES.Clone()
 WINDOW_STEPS := [2/3, 1/2, 1/3] ; ReportConfig() checks it (lib/window.ahk)
 DEFAULT_WINDOW_STEPS := WINDOW_STEPS.Clone()
+WINDOW_STEP_ONE_AXIS := true
 Critical ; Keeps the ReportConfig() timer from opening a message box mid-run
 #Include %A_ScriptDir%\..\lib\tools.ahk
 #Include %A_ScriptDir%\..\lib\snippets-markup.ahk
